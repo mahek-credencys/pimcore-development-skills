@@ -1,0 +1,20 @@
+{
+  "pack_id": "php-symfony-pimcore-expert",
+  "name": "PHP · Symfony · Pimcore Expert Pack",
+  "version": "1.0.0",
+  "author": "mahek-credencys",
+  "repo": "https://github.com/mahek-credencys/pimcore-development-skills",
+  "raw_base": "https://raw.githubusercontent.com/mahek-credencys/pimcore-development-skills/main/",
+  "skills_count": 28,
+  "level": "Expert",
+  "tags": ["php", "symfony", "pimcore", "doctrine", "backend"],
+  "files": [
+    "engineering/php-symfony-pimcore/php-foundations.md",
+    "engineering/php-symfony-pimcore/symfony-core.md",
+    "engineering/php-symfony-pimcore/doctrine-orm.md",
+    "engineering/php-symfony-pimcore/pimcore.md",
+    "engineering/php-symfony-pimcore/superpower-skills.md",
+    "engineering/php-symfony-pimcore/performance-ops.md",
+    "engineering/php-symfony-pimcore/testing-dx.md"
+  ]
+}
