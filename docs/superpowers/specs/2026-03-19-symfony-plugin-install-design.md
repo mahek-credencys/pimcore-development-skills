@@ -65,14 +65,15 @@ Each `SKILL.md` carries frontmatter for both invocation modes:
 ---
 name: symfony-service-container
 description: >
-  Use when working with Symfony service container, dependency injection,
-  autowiring, service tagging, or tagged iterators.
+  This skill should be used when the user asks to "configure services",
+  "set up dependency injection", "autowire", "tag services", or discusses
+  Symfony service container, DI container, or tagged iterators.
 version: 1.0.0
 ---
 ```
 
 - **`name`** — becomes the slash command (`/symfony-service-container`)
-- **`description`** — trigger phrases Claude uses for model-invoked activation
+- **`description`** — must use the trigger-phrase convention (`This skill should be used when the user asks to "..."`) for reliable model-invoked activation
 - Body — copy of the relevant section from the existing reference `.md` file
 
 ## plugin.json
@@ -89,14 +90,27 @@ version: 1.0.0
 
 ## Installation Steps
 
-1. **Create symlink**
+1. **Build the `plugin/` directory tree** (prerequisite — must exist before symlinking)
+   Create `engineering/php-symfony-pimcore/plugin/` with `.claude-plugin/plugin.json`
+   and all 28 `skills/<name>/SKILL.md` files (see structure above). This is the
+   implementation work described in the implementation plan.
+
+2. **Create symlink**
+
+   > **Note:** The `cache/local/` namespace is not an officially documented path for
+   > local plugins. It mirrors the `cache/<marketplace>/<plugin>/<version>` convention
+   > used by real marketplace installs (e.g. `cache/claude-plugins-official/superpowers/5.0.5/`).
+   > If Claude Code fails to load skills from this path, the fallback is to copy the
+   > `plugin/` directory directly (without a symlink) and update `installPath` to the
+   > absolute copy location.
+
    ```bash
    mkdir -p ~/.claude/plugins/cache/local/php-symfony-pimcore
    ln -s /home/ubuntu/projects/pimcore-development-skills/engineering/php-symfony-pimcore/plugin \
          ~/.claude/plugins/cache/local/php-symfony-pimcore/1.0.0
    ```
 
-2. **Register in `installed_plugins.json`**
+3. **Register in `installed_plugins.json`**
    Add an entry under `plugins` key:
    ```json
    "php-symfony-pimcore@local": [
@@ -110,13 +124,18 @@ version: 1.0.0
    ]
    ```
 
-3. **Enable in `settings.json`**
+4. **Enable in `settings.json`**
    ```json
    "enabledPlugins": {
      ...existing...,
      "php-symfony-pimcore@local": true
    }
    ```
+
+5. **Verify install**
+   Start a new Claude Code session and run `/php-8x`. Confirm the skill content
+   loads. Also run `ls -la ~/.claude/plugins/cache/local/php-symfony-pimcore/1.0.0`
+   to confirm the symlink resolves to the repo directory.
 
 ## Complete Skill Inventory (28)
 
@@ -125,30 +144,30 @@ version: 1.0.0
 | `php-8x` | php-foundations § PHP 8.x | match, enums, fibers |
 | `php-oop-solid` | php-foundations § OOP & SOLID | interfaces, DI, patterns |
 | `php-composer` | php-foundations § Composer | autoloading, versioning |
-| `php-opcache` | php-foundations § OPcache | preloading, cache tuning |
+| `php-opcache` | php-foundations § OPcache config | preloading, cache tuning |
 | `symfony-service-container` | symfony-core § Service container | DI, autowiring, tagging |
 | `symfony-routing-controllers` | symfony-core § Routing & controllers | routes, param converters |
 | `symfony-event-system` | symfony-core § Event system | subscribers, listeners |
 | `symfony-lazy-services` | symfony-core § Lazy services | lazy proxy |
 | `doctrine-entities-mapping` | doctrine-orm § Entities & mapping | ORM attributes, relations |
 | `doctrine-querybuilder-dql` | doctrine-orm § QueryBuilder / DQL | custom queries |
-| `doctrine-lazy-loading` | doctrine-orm § Lazy loading | N+1, EXTRA_LAZY |
+| `doctrine-lazy-loading` | doctrine-orm § Avoid N+1 — EXTRA_LAZY + JOIN fetch | N+1, EXTRA_LAZY |
 | `doctrine-migrations` | doctrine-orm § Migrations | schema evolution |
 | `pimcore-data-objects` | pimcore § Data objects | classes, bricks, fields |
 | `pimcore-documents-pages` | pimcore § Documents & pages | editables, areas |
 | `pimcore-datahub-api` | pimcore § Datahub / API | GraphQL, REST |
 | `pimcore-full-page-cache` | pimcore § Full-page cache | output caching |
-| `symfony-messenger-queues` | superpower-skills § Messenger | async, workers, retry |
-| `symfony-console-commands` | superpower-skills § Console | batch jobs, imports |
+| `symfony-messenger-queues` | superpower-skills § Messenger / queues | async, workers, retry |
+| `symfony-console-commands` | superpower-skills § Console commands | batch jobs, imports |
 | `symfony-custom-bundles` | superpower-skills § Custom bundles | bundle extension |
-| `symfony-security-voters` | superpower-skills § Security | voters, firewalls |
+| `symfony-security-voters` | superpower-skills § Security — Voters | voters, firewalls |
 | `perf-profiling` | performance-ops § Profiling | Blackfire, Xdebug |
-| `perf-redis-caching` | performance-ops § Redis | sessions, cache pools |
+| `perf-redis-caching` | performance-ops § Redis caching | sessions, cache pools |
 | `perf-elasticsearch` | performance-ops § Elasticsearch | search, product listing |
-| `perf-ci-cd-docker` | performance-ops § CI/CD | deploy, containers |
+| `perf-ci-cd-docker` | performance-ops § CI/CD & Docker | deploy, containers |
 | `testing-phpunit` | testing-dx § PHPUnit | unit, integration tests |
-| `testing-functional` | testing-dx § Functional | WebTestCase, BrowserKit |
-| `testing-phpstan-psalm` | testing-dx § PHPStan / Psalm | static analysis |
+| `testing-functional` | testing-dx § Functional testing | WebTestCase, BrowserKit |
+| `testing-phpstan-psalm` | testing-dx § PHPStan | static analysis |
 | `testing-cs-fixer` | testing-dx § CS Fixer | linting, PSR-12 |
 
 ## Out of Scope
