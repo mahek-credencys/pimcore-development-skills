@@ -30,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Note: "Install skill pack" step from source file intentionally excluded —
-      # it references a superseded installation method (direct skills clone).
       - name: Build & push Docker image
         run: |
           docker build -t credencys/pimcore:${{ github.sha }} .
