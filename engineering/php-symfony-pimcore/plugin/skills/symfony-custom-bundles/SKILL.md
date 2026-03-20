@@ -9,7 +9,7 @@ version: 1.0.0
 
 ## Custom bundles
 
-```
+```text
 src/
   CredencysProductBundle/
     CredencysProductBundle.php
