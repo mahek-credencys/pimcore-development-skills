@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "pimcore-development-skills",
+  "description": "Expert-level PHP 8.x, Symfony 6/7, Pimcore 11, Doctrine ORM, testing, and ops skill pack for Claude Code",
+  "owner": {
+    "name": "mahek-credencys"
+  },
+  "plugins": [
+    {
+      "name": "php-symfony-pimcore",
+      "description": "Expert-level PHP 8.x, Symfony 6/7, Pimcore 11, Doctrine ORM, testing, and ops skills",
+      "category": "development",
+      "source": "./engineering/php-symfony-pimcore/plugin",
+      "homepage": "https://github.com/mahek-credencys/pimcore-development-skills"
+    }
+  ]
+}
