@@ -25,7 +25,8 @@ that minimal snippets cannot address. Each skill covers exactly one testable lay
 ### `testing-pimcore-dataobjects` v1.0.0
 
 **Trigger phrases:** "test a DataObject", "mock DataObject::getById", "test object brick",
-"test field collection", "unit test Pimcore class", testing Pimcore data object save/load behaviour.
+"test field collection", "unit test Pimcore class", "forceLoad DataObject",
+testing Pimcore data object save/load behaviour.
 
 **Content — 3 patterns:**
 
@@ -38,9 +39,9 @@ to inject a thin repository wrapper:
 // Testable wrapper — inject this instead of calling static directly
 class ProductRepository
 {
-    public function find(int $id): ?DataObject\Product
+    public function find(int $id, bool $force = false): ?DataObject\Product
     {
-        return DataObject\Product::getById($id);
+        return DataObject\Product::getById($id, $force);
     }
 }
 ```
@@ -60,27 +61,21 @@ class ProductServiceTest extends TestCase
 }
 ```
 
-#### Pattern 2: Test Listing filters
+#### Pattern 2: forceLoad for unpublished objects
 
-Assert that listing conditions, limit, and order are set correctly without hitting the database:
+**Critical Pimcore gotcha:** `DataObject::getById($id)` returns `null` for unpublished objects
+by default. Tests against unpublished fixtures silently fail unless `$force = true` is passed.
+Always use `forceLoad` in test setup:
 
 ```php
-class ProductListingBuilderTest extends TestCase
-{
-    public function testAppliesActiveFilter(): void
-    {
-        $listing = $this->createMock(DataObject\Product\Listing::class);
-        $listing->expects($this->once())
-            ->method('setCondition')
-            ->with('active = 1 AND price > ?', [0]);
-        $listing->expects($this->once())
-            ->method('setLimit')
-            ->with(50);
+// BAD — returns null if object is unpublished, test fails silently
+$product = DataObject\Product::getById(42);
 
-        $builder = new ProductListingBuilder($listing);
-        $builder->buildActive(minPrice: 0, limit: 50);
-    }
-}
+// GOOD — always loads regardless of published state
+$product = DataObject\Product::getById(42, true);
+
+// In a repository wrapper, expose the $force parameter
+$product = $this->repo->find(42, forceLoad: true);
 ```
 
 #### Pattern 3: Test DataObject setters/getters
@@ -88,14 +83,20 @@ class ProductListingBuilderTest extends TestCase
 Instantiate DataObjects directly — no database required for pure getter/setter assertions:
 
 ```php
-public function testProductNameRoundTrip(): void
-{
-    $product = new DataObject\Product();
-    $product->setName('Test Product');
-    $product->setPrice(99.99);
+use PHPUnit\Framework\TestCase;
+use Pimcore\Model\DataObject;
 
-    $this->assertSame('Test Product', $product->getName());
-    $this->assertSame(99.99, $product->getPrice());
+class ProductDataObjectTest extends TestCase
+{
+    public function testNameRoundTrip(): void
+    {
+        $product = new DataObject\Product();
+        $product->setName('Test Product');
+        $product->setPrice(99.99);
+
+        $this->assertSame('Test Product', $product->getName());
+        $this->assertSame(99.99, $product->getPrice());
+    }
 }
 ```
 
@@ -104,18 +105,25 @@ public function testProductNameRoundTrip(): void
 ### `testing-pimcore-controllers` v1.0.0
 
 **Trigger phrases:** "test Studio Backend endpoint", "test AbstractApiController",
-"Pimcore WebTestCase", "test custom Studio REST endpoint", "integration test Pimcore controller",
-testing HTTP endpoints built on Pimcore Studio Backend.
+"Pimcore\\Test\\WebTestCase", "Pimcore kernel bootstrap", "test custom Studio REST endpoint",
+"integration test Pimcore controller", testing HTTP endpoints built on Pimcore Studio Backend.
+
+Note: these triggers are intentionally distinct from `testing-functional` which covers
+generic Symfony `WebTestCase`. This skill is specifically for Pimcore Studio Backend endpoints.
 
 **Content — 3 patterns:**
 
-#### Pattern 1: Pimcore kernel bootstrap
+#### Pattern 1: Kernel bootstrap (Pimcore version aware)
 
-Must extend `Pimcore\Test\WebTestCase` (not Symfony's `WebTestCase`) — it handles the Pimcore
-container boot, including data object class autoloading:
+**Pimcore 10 and earlier:** extend `Pimcore\Test\WebTestCase` which handles the Pimcore
+container boot including data object class autoloading.
+
+**Pimcore 11+:** `Pimcore\Test\WebTestCase` is deprecated. Use the standard Symfony
+`WebTestCase` with a custom `AppKernel` that registers all Pimcore bundles:
 
 ```php
-use Pimcore\Test\WebTestCase;
+// Pimcore 11+ — standard Symfony WebTestCase with Pimcore-aware kernel
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class CustomAssetControllerTest extends WebTestCase
 {
@@ -131,38 +139,50 @@ class CustomAssetControllerTest extends WebTestCase
 
 #### Pattern 2: Authenticated Studio requests
 
-Studio endpoints require admin authentication. Set up a test admin user token:
+Studio endpoints require admin authentication. Use `loginUser()` with a seeded test admin:
 
 ```php
 protected function setUp(): void
 {
     parent::setUp();
-    // Authenticate as admin for all Studio endpoint tests
-    $this->client = static::createClient([], [
-        'HTTP_Authorization' => 'Bearer ' . $this->getAdminToken(),
-    ]);
-}
+    $this->client = static::createClient();
 
-private function getAdminToken(): string
-{
-    // Use Pimcore's test token helper or create a fixture admin user
-    return \Pimcore\Tool\Authentication::generateToken('admin');
+    // Load or create a test admin user via the Pimcore user service
+    $admin = \Pimcore\Model\User::getByName('admin');
+    $this->client->loginUser($admin);
 }
 ```
 
 #### Pattern 3: Assert JSON response shape
 
-Validate the structure of a Studio endpoint response:
+Validate the structure of a Studio endpoint response. This pattern is self-contained —
+the `setUp()` from Pattern 2 is included for context:
 
 ```php
-public function testResponseContainsId(): void
-{
-    $this->client->request('GET', '/pimcore-studio/api/custom/asset/1');
-    $this->assertResponseIsSuccessful();
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
-    $data = json_decode($this->client->getResponse()->getContent(), true);
-    $this->assertArrayHasKey('id', $data);
-    $this->assertSame(1, $data['id']);
+class CustomAssetControllerTest extends WebTestCase
+{
+    private KernelBrowser $client;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->client = static::createClient();
+        $admin = \Pimcore\Model\User::getByName('admin');
+        $this->client->loginUser($admin);
+    }
+
+    public function testResponseContainsId(): void
+    {
+        $this->client->request('GET', '/pimcore-studio/api/custom/asset/1');
+        $this->assertResponseIsSuccessful();
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('id', $data);
+        $this->assertSame(1, $data['id']);
+    }
 }
 ```
 
@@ -189,6 +209,11 @@ class AssetLocator
         return Asset::getById($id);
     }
 }
+```
+
+```php
+use PHPUnit\Framework\TestCase;
+use Pimcore\Model\Asset;
 
 // In test
 class ThumbnailServiceTest extends TestCase
@@ -205,22 +230,29 @@ class ThumbnailServiceTest extends TestCase
 }
 ```
 
-#### Pattern 2: Test Pimcore event subscribers
+#### Pattern 2: Test Pimcore event subscribers (direct-call unit test)
 
-Dispatch `DataObjectEvents::POST_UPDATE` manually via the EventDispatcher, assert the
-subscriber reacted correctly:
+Call the listener method directly with a manually constructed event — this is a unit test,
+not a dispatch test. The subscriber is tested in isolation without booting the kernel:
 
 ```php
+use PHPUnit\Framework\TestCase;
+use Pimcore\Event\Model\DataObjectEvent;
+use Pimcore\Model\DataObject;
+
 class ProductSaveListenerTest extends TestCase
 {
     public function testClearsCacheOnSave(): void
     {
         $cache = $this->createMock(CacheInterface::class);
-        $cache->expects($this->once())->method('delete')->with('product_list');
+        $cache->expects($this->once())
+              ->method('delete')
+              ->with('product_list');
 
         $listener = new ProductSaveListener($cache);
 
-        $event = new DataObjectEvent(new DataObject\Product(), []);
+        // Construct the event directly — no EventDispatcher needed for unit tests
+        $event = new DataObjectEvent(new DataObject\Product());
         $listener->onPostUpdate($event);
     }
 }
@@ -232,11 +264,14 @@ Services that read/write `Pimcore\Cache\RuntimeCache` must clear it in `tearDown
 prevent state leaking between tests:
 
 ```php
+use PHPUnit\Framework\TestCase;
+use Pimcore\Cache\RuntimeCache;
+
 class ProductCacheServiceTest extends TestCase
 {
     protected function tearDown(): void
     {
-        \Pimcore\Cache\RuntimeCache::clearAll();
+        RuntimeCache::clearAll();
         parent::tearDown();
     }
 
@@ -247,7 +282,7 @@ class ProductCacheServiceTest extends TestCase
 
         $this->assertSame(
             ['name' => 'Test'],
-            \Pimcore\Cache\RuntimeCache::load('product_42')
+            RuntimeCache::load('product_42')
         );
     }
 }
@@ -264,7 +299,7 @@ engineering/php-symfony-pimcore/plugin/skills/
 
 ## Branch Strategy
 
-Work on a feature branch `feat/pimcore-testing-skills`, then push to GitHub.
+Work on feature branch `feat/pimcore-testing-skills`, push to GitHub.
 
 ## Out of Scope
 
