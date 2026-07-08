@@ -9,7 +9,9 @@ A structured skill registry for **Claude Code** and the **Manage Plugin** market
 Install once — every developer on your team gets the same 28 expert-level skills
 loaded into their Claude session automatically.
 
-## Skill categories
+## Skill packs
+
+### 1. PHP · Symfony · Pimcore Expert Pack (`engineering/php-symfony-pimcore/`)
 
 | Category | Skills | Level |
 |---|---|---|
@@ -20,6 +22,19 @@ loaded into their Claude session automatically.
 | Superpower skills | Messenger, Console commands, Custom bundles, Security | Expert |
 | Performance & ops | Profiling, Redis, Elasticsearch, CI/CD & Docker | Expert |
 | Testing & DX | PHPUnit, Functional testing, PHPStan, CS Fixer | Expert |
+
+### 2. Full-Stack Development Expert Pack (`engineering/fullstack-development/`)
+
+| Category | Skills | Level |
+|---|---|---|
+| Node.js | Async patterns, API development (Express 5), Security, Testing | Expert |
+| TypeScript | Strict config, discriminated unions, runtime validation | Expert |
+| React 19 | Hooks, Data fetching (TanStack Query), Performance, Forms, Testing | Expert |
+| Python 3.13 | Modern syntax, FastAPI, pytest, uv/ruff tooling | Expert |
+| PHP | Security hardening (SQLi, XSS, sessions, uploads) | Expert |
+| MySQL / MariaDB | Query optimization, Schema & migrations, MariaDB features | Expert |
+| MongoDB | Schema design, Aggregation & performance | Expert |
+| Dev workflow | API design standards, Docker dev environments, Git workflow | Expert |
 
 ## Quick install
 
@@ -70,15 +85,19 @@ pimcore-development-skills/
 ├── README.md
 ├── engineering/
 │   ├── index.json                              ← skill pack registry
-│   └── php-symfony-pimcore/
+│   ├── php-symfony-pimcore/
+│   │   ├── MANIFEST.md
+│   │   ├── php-foundations.md
+│   │   ├── symfony-core.md
+│   │   ├── doctrine-orm.md
+│   │   ├── pimcore.md
+│   │   ├── superpower-skills.md
+│   │   ├── performance-ops.md
+│   │   ├── testing-dx.md
+│   │   └── plugin/skills/…                     ← 33 granular SKILL.md files
+│   └── fullstack-development/
 │       ├── MANIFEST.md
-│       ├── php-foundations.md
-│       ├── symfony-core.md
-│       ├── doctrine-orm.md
-│       ├── pimcore.md
-│       ├── superpower-skills.md
-│       ├── performance-ops.md
-│       └── testing-dx.md
+│       └── plugin/skills/…                     ← 23 granular SKILL.md files
 └── .claude/
     └── skills.json                             ← Claude Code reads on startup
 ```
