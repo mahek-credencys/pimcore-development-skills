@@ -30,10 +30,13 @@ loaded into their Claude session automatically.
 | Node.js | Async patterns, API development (Express 5), Security, Testing | Expert |
 | TypeScript | Strict config, discriminated unions, runtime validation | Expert |
 | React 19 | Hooks, Data fetching (TanStack Query), Performance, Forms, Testing | Expert |
+| Next.js 15/16 | App Router, Server Actions, Caching & rendering | Expert |
 | Python 3.13 | Modern syntax, FastAPI, pytest, uv/ruff tooling | Expert |
 | PHP | Security hardening (SQLi, XSS, sessions, uploads) | Expert |
 | MySQL / MariaDB | Query optimization, Schema & migrations, MariaDB features | Expert |
 | MongoDB | Schema design, Aggregation & performance | Expert |
+| Redis | Caching patterns, Data structures (locks, queues, rate limits) | Expert |
+| Kubernetes | Deployments (probes, resources, ingress), Debugging | Expert |
 | Dev workflow | API design standards, Docker dev environments, Git workflow | Expert |
 
 ## Quick install
@@ -97,7 +100,7 @@ pimcore-development-skills/
 │   │   └── plugin/skills/…                     ← 33 granular SKILL.md files
 │   └── fullstack-development/
 │       ├── MANIFEST.md
-│       └── plugin/skills/…                     ← 23 granular SKILL.md files
+│       └── plugin/skills/…                     ← 30 granular SKILL.md files
 └── .claude/
     └── skills.json                             ← Claude Code reads on startup
 ```
