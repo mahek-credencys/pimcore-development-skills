@@ -81,8 +81,8 @@ fos_elastica:
 ## CI/CD & Docker
 
 ```dockerfile
-# Dockerfile
-FROM php:8.3-fpm-alpine
+# Dockerfile — Pimcore Platform 2026.x requires PHP 8.4/8.5; use php:8.4-fpm-alpine for Pimcore 12 / 2025.x
+FROM php:8.5-fpm-alpine
 RUN docker-php-ext-install opcache pdo_mysql
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www

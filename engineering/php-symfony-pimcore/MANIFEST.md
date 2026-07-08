@@ -12,9 +12,20 @@ categories: 7
 
 ## Description
 
-Full expert-level skill pack for PHP 8.x, Symfony 6/7, and Pimcore 11
-backend development. Covers dependency injection, ORM patterns, async
-queues, caching, CI/CD, and testing best practices.
+Full expert-level skill pack for PHP 8.x, Symfony 6/7, and Pimcore 11/12 +
+Platform Version 2026 (Studio) backend development. Covers dependency
+injection, ORM patterns, async queues, caching, CI/CD, and testing best
+practices.
+
+## Supported stack baseline (verified 2026-07 against official docs)
+
+| Component | Current | Notes |
+|---|---|---|
+| Pimcore | Platform Version 2026.1 (core 2026.x; 12.3.x maintained) | 2025.4 is the last release with the ExtJS Classic Admin UI; Studio is GA |
+| PHP | 8.5 (2026.x requires `~8.4.0 \|\| ~8.5.0`) | Pimcore 12 / 2025.x: PHP 8.3–8.4 |
+| Symfony | 7.4 (Pimcore 2026.x) | Pimcore 11: 6.4 · Pimcore 12: 7.x |
+| MySQL | 8.4 LTS | MySQL 8.0 reached EOL in April 2026 — upgrade |
+| MariaDB | 11.8 LTS / 12.3 LTS | Pimcore minimum: MariaDB ≥ 10.3 |
 
 ## Files
 
